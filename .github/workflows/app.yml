@@ -38,6 +38,14 @@ jobs:
             curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
           fi
 
+      # --- YE STEP GRADLE.PROPERTIES KO FIX KAREGA ---
+      - name: Fix gradle.properties (Force Newlines)
+        run: |
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "kotlin.code.style=official" >> gradle.properties
+          echo "android.nonTransitiveRClass=true" >> gradle.properties
+
       - name: Grant execute permission
         run: chmod +x gradlew
 
