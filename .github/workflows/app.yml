@@ -1,74 +1,699 @@
-name: Build Fear Launcher APK
+name: Generate Fear Launcher Project
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/generate-project.yml'
 
 jobs:
-  build:
+  generate-project:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
+    
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- YE STEP US ERROR KO FIX KAREGA ---
-      - name: Fix Missing Gradle Wrapper (Auto Download)
+      - name: Create directory structure
         run: |
-          if [ ! -f "./gradlew" ]; then
-            echo "gradlew file missing hai! Downloading..."
-            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew -o gradlew
-            chmod +x gradlew
-            
-            mkdir -p gradle/wrapper
-            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-            
-            # Safe way to write properties file without EOF indentation issues
-            echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
-            echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-            echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" >> gradle/wrapper/gradle-wrapper.properties
-            echo "networkTimeout=10000" >> gradle/wrapper/gradle-wrapper.properties
-            echo "validateDistributionUrl=true" >> gradle/wrapper/gradle-wrapper.properties
-            echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
-            echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-            
-            echo "Gradle wrapper successfully downloaded!"
-          else
-            echo "gradlew already exists."
-          fi
+          mkdir -p app/src/main/java/com/fearlauncher/ui/theme
+          mkdir -p app/src/main/java/com/fearlauncher/ui/screens
+          mkdir -p app/src/main/java/com/fearlauncher/ui/components
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/values
+          mkdir -p .github/workflows
+          mkdir -p gradle/wrapper
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Create Color.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/theme/Color.kt << 'EOF'
+          package com.fearlauncher.ui.theme
+
+          import androidx.compose.ui.graphics.Color
+
+          // Silver & Black Palette for Fear Launcher
+          val SilverPrimary = Color(0xFFC0C0C0)
+          val SilverDark = Color(0xFF808080)
+          val BlackBg = Color(0xFF0A0A0A)
+          val BlackSurface = Color(0xFF1C1C1E)
+          val SilverAccent = Color(0xFFE8E8E8)
+          val GradientStart = Color(0xFF2C2C2E)
+          val GradientEnd = Color(0xFF000000)
+          EOF
+
+      - name: Create Theme.kt        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/theme/Theme.kt << 'EOF'
+          package com.fearlauncher.ui.theme
+
+          import android.app.Activity
+          import androidx.compose.foundation.isSystemInDarkTheme
+          import androidx.compose.material3.MaterialTheme
+          import androidx.compose.material3.darkColorScheme
+          import androidx.compose.runtime.Composable
+          import androidx.compose.runtime.SideEffect
+          import androidx.compose.ui.graphics.toArgb
+          import androidx.compose.ui.platform.LocalView
+          import androidx.core.view.WindowCompat
+
+          private val DarkColorScheme = darkColorScheme(
+              primary = SilverPrimary,
+              secondary = SilverDark,
+              tertiary = SilverAccent,
+              background = BlackBg,
+              surface = BlackSurface
+          )
+
+          @Composable
+          fun FearLauncherTheme(
+              darkTheme: Boolean = isSystemInDarkTheme(),
+              content: @Composable () -> Unit
+          ) {
+              val colorScheme = DarkColorScheme
+              val view = LocalView.current
+              if (!view.isInEditMode) {
+                  SideEffect {
+                      val window = (view.context as Activity).window
+                      window.statusBarColor = colorScheme.background.toArgb()
+                      WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+                  }
+              }
+
+              MaterialTheme(
+                  colorScheme = colorScheme,
+                  typography = Typography,
+                  content = content
+              )
+          }
+          EOF
+
+      - name: Create Type.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/theme/Type.kt << 'EOF'
+          package com.fearlauncher.ui.theme
+          import androidx.compose.material3.Typography
+          import androidx.compose.ui.text.TextStyle
+          import androidx.compose.ui.text.font.FontFamily
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.sp
+
+          val Typography = Typography(
+              bodyLarge = TextStyle(
+                  fontFamily = FontFamily.Default,
+                  fontWeight = FontWeight.Normal,
+                  fontSize = 16.sp,
+                  lineHeight = 24.sp,
+                  letterSpacing = 0.5.sp
+              ),
+              titleLarge = TextStyle(
+                  fontFamily = FontFamily.Default,
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 22.sp,
+                  lineHeight = 28.sp,
+                  letterSpacing = 0.sp
+              ),
+              labelSmall = TextStyle(
+                  fontFamily = FontFamily.Default,
+                  fontWeight = FontWeight.Medium,
+                  fontSize = 11.sp,
+                  lineHeight = 16.sp,
+                  letterSpacing = 0.5.sp
+              )
+          )
+          EOF
+
+      - name: Create HomeScreen.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/screens/HomeScreen.kt << 'EOF'
+          package com.fearlauncher.ui.screens
+
+          import androidx.compose.foundation.background
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.foundation.shape.RoundedCornerShape
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.PlayArrow
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.graphics.Brush
+          import androidx.compose.ui.graphics.Color
+          import androidx.compose.ui.text.font.FontWeight          import androidx.compose.ui.unit.dp
+          import androidx.compose.ui.unit.sp
+          import com.fearlauncher.ui.components.VersionCard
+          import com.fearlauncher.ui.theme.*
+
+          @Composable
+          fun HomeScreen() {
+              Column(
+                  modifier = Modifier
+                      .fillMaxSize()
+                      .background(
+                          Brush.verticalGradient(
+                              colors = listOf(GradientStart, GradientEnd)
+                          )
+                      )
+                      .padding(16.dp)
+              ) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                      Text("FEAR LAUNCHER",
+                          style = MaterialTheme.typography.headlineMedium,
+                          color = SilverAccent,
+                          fontWeight = FontWeight.Bold
+                      )
+                  }
+
+                  Spacer(modifier = Modifier.height(24.dp))
+
+                  Card(
+                      modifier = Modifier.fillMaxWidth().height(180.dp),
+                      shape = RoundedCornerShape(20.dp),
+                      colors = CardDefaults.cardColors(containerColor = BlackSurface.copy(alpha = 0.8f))
+                  ) {
+                      Box(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+                          Column {
+                              Text("Welcome back,", color = SilverDark, fontSize = 14.sp)
+                              Text("PlayerOne!", color = SilverPrimary,
+                                  style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
+                              Spacer(modifier = Modifier.height(8.dp))
+                              Text("Ready to explore?", color = Color.White.copy(alpha = 0.7f))
+                          }
+
+                          Button(
+                              onClick = { },
+                              modifier = Modifier.align(Alignment.BottomEnd).width(140.dp).height(48.dp),
+                              colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary),
+                              shape = RoundedCornerShape(12.dp)
+                          ) {
+                              Icon(Icons.Default.PlayArrow, "Play", tint = BlackBg)
+                              Spacer(Modifier.width(8.dp))
+                              Text("PLAY NOW", color = BlackBg, fontWeight = FontWeight.Bold)                          }
+                      }
+                  }
+
+                  Spacer(modifier = Modifier.height(24.dp))
+
+                  Text("Recent Installations", color = SilverAccent, style = MaterialTheme.typography.titleMedium)
+                  Spacer(modifier = Modifier.height(12.dp))
+
+                  LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                      items(listOf("1.20.4 Vanilla", "1.19.2 Modded", "1.20.1 SMP")) { version ->
+                          VersionCard(versionName = version)
+                      }
+                  }
+              }
+          }
+          EOF
+
+      - name: Create PlayScreen.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/screens/PlayScreen.kt << 'EOF'
+          package com.fearlauncher.ui.screens
+
+          import androidx.compose.foundation.background
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.material3.MaterialTheme
+          import androidx.compose.material3.Text
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.graphics.Brush
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import com.fearlauncher.ui.theme.GradientEnd
+          import com.fearlauncher.ui.theme.GradientStart
+          import com.fearlauncher.ui.theme.SilverAccent
+
+          @Composable
+          fun PlayScreen() {
+              Column(
+                  modifier = Modifier
+                      .fillMaxSize()
+                      .background(
+                          Brush.verticalGradient(
+                              colors = listOf(GradientStart, GradientEnd)
+                          )
+                      )
+                      .padding(16.dp),
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.Center              ) {
+                  Text("Play Screen",
+                      color = SilverAccent,
+                      style = MaterialTheme.typography.headlineLarge,
+                      fontWeight = FontWeight.Bold
+                  )
+                  Text("Coming Soon", color = SilverAccent.copy(alpha = 0.7f))
+              }
+          }
+          EOF
+
+      - name: Create SettingsScreen.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/screens/SettingsScreen.kt << 'EOF'
+          package com.fearlauncher.ui.screens
+
+          import androidx.compose.foundation.background
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.material3.MaterialTheme
+          import androidx.compose.material3.Text
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.graphics.Brush
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import com.fearlauncher.ui.theme.GradientEnd
+          import com.fearlauncher.ui.theme.GradientStart
+          import com.fearlauncher.ui.theme.SilverAccent
+
+          @Composable
+          fun SettingsScreen() {
+              Column(
+                  modifier = Modifier
+                      .fillMaxSize()
+                      .background(
+                          Brush.verticalGradient(
+                              colors = listOf(GradientStart, GradientEnd)
+                          )
+                      )
+                      .padding(16.dp),
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.Center
+              ) {
+                  Text("Settings",
+                      color = SilverAccent,
+                      style = MaterialTheme.typography.headlineLarge,
+                      fontWeight = FontWeight.Bold
+                  )
+                  Text("Configure your launcher", color = SilverAccent.copy(alpha = 0.7f))              }
+          }
+          EOF
+
+      - name: Create BottomNavBar.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/components/BottomNavBar.kt << 'EOF'
+          package com.fearlauncher.ui.components
+
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.Home
+          import androidx.compose.material.icons.filled.PlayArrow
+          import androidx.compose.material.icons.filled.Settings
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Modifier
+          import com.fearlauncher.ui.theme.BlackSurface
+          import com.fearlauncher.ui.theme.SilverPrimary
+
+          @Composable
+          fun BottomNavBar(
+              selectedItem: Int,
+              onItemSelected: (Int) -> Unit
+          ) {
+              NavigationBar(
+                  containerColor = BlackSurface,
+                  contentColor = SilverPrimary
+              ) {
+                  NavigationBarItem(
+                      icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                      label = { Text("Home") },
+                      selected = selectedItem == 0,
+                      onClick = { onItemSelected(0) },
+                      colors = NavigationBarItemDefaults.colors(
+                          selectedTextColor = SilverPrimary,
+                          unselectedTextColor = SilverPrimary.copy(alpha = 0.6f),
+                          selectedIconColor = SilverPrimary,
+                          unselectedIconColor = SilverPrimary.copy(alpha = 0.6f),
+                          indicatorColor = BlackSurface
+                      )
+                  )
+                  NavigationBarItem(
+                      icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Play") },
+                      label = { Text("Play") },
+                      selected = selectedItem == 1,
+                      onClick = { onItemSelected(1) },
+                      colors = NavigationBarItemDefaults.colors(
+                          selectedTextColor = SilverPrimary,
+                          unselectedTextColor = SilverPrimary.copy(alpha = 0.6f),
+                          selectedIconColor = SilverPrimary,                          unselectedIconColor = SilverPrimary.copy(alpha = 0.6f),
+                          indicatorColor = BlackSurface
+                      )
+                  )
+                  NavigationBarItem(
+                      icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                      label = { Text("Settings") },
+                      selected = selectedItem == 2,
+                      onClick = { onItemSelected(2) },
+                      colors = NavigationBarItemDefaults.colors(
+                          selectedTextColor = SilverPrimary,
+                          unselectedTextColor = SilverPrimary.copy(alpha = 0.6f),
+                          selectedIconColor = SilverPrimary,
+                          unselectedIconColor = SilverPrimary.copy(alpha = 0.6f),
+                          indicatorColor = BlackSurface
+                      )
+                  )
+              }
+          }
+          EOF
+
+      - name: Create VersionCard.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/ui/components/VersionCard.kt << 'EOF'
+          package com.fearlauncher.ui.components
+
+          import androidx.compose.foundation.background
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.shape.RoundedCornerShape
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.PlayArrow
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.graphics.Color
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import androidx.compose.ui.unit.sp
+          import com.fearlauncher.ui.theme.BlackSurface
+          import com.fearlauncher.ui.theme.SilverDark
+          import com.fearlauncher.ui.theme.SilverPrimary
+
+          @Composable
+          fun VersionCard(versionName: String) {
+              Card(
+                  modifier = Modifier.fillMaxWidth(),
+                  colors = CardDefaults.cardColors(containerColor = BlackSurface),
+                  shape = RoundedCornerShape(16.dp)
+              ) {                  Row(
+                      modifier = Modifier.padding(16.dp),
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                      Box(
+                          modifier = Modifier
+                              .size(48.dp)
+                              .background(SilverDark, RoundedCornerShape(8.dp))
+                      )
+                      Spacer(modifier = Modifier.width(16.dp))
+                      Column(modifier = Modifier.weight(1f)) {
+                          Text(versionName, color = SilverPrimary, fontWeight = FontWeight.Medium)
+                          Text("Last played: Today", color = SilverDark, fontSize = 12.sp)
+                      }
+                      IconButton(onClick = {}) {
+                          Icon(Icons.Default.PlayArrow, "Play", tint = SilverPrimary)
+                      }
+                  }
+              }
+          }
+          EOF
+
+      - name: Create MainActivity.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/MainActivity.kt << 'EOF'
+          package com.fearlauncher
+
+          import android.os.Bundle
+          import androidx.activity.ComponentActivity
+          import androidx.activity.compose.setContent
+          import androidx.compose.foundation.layout.fillMaxSize
+          import androidx.compose.material3.MaterialTheme
+          import androidx.compose.material3.Surface
+          import androidx.compose.ui.Modifier
+          import com.fearlauncher.ui.theme.FearLauncherTheme
+
+          class MainActivity : ComponentActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  setContent {
+                      FearLauncherTheme {
+                          Surface(
+                              modifier = Modifier.fillMaxSize(),
+                              color = MaterialTheme.colorScheme.background
+                          ) {
+                              FearLauncherApp()
+                          }
+                      }
+                  }
+              }          }
+          EOF
+
+      - name: Create FearLauncherApp.kt
+        run: |
+          cat > app/src/main/java/com/fearlauncher/FearLauncherApp.kt << 'EOF'
+          package com.fearlauncher
+
+          import androidx.compose.material3.Scaffold
+          import androidx.compose.runtime.*
+          import com.fearlauncher.ui.components.BottomNavBar
+          import com.fearlauncher.ui.screens.HomeScreen
+          import com.fearlauncher.ui.screens.PlayScreen
+          import com.fearlauncher.ui.screens.SettingsScreen
+
+          @Composable
+          fun FearLauncherApp() {
+              var selectedItem by remember { mutableStateOf(0) }
+
+              Scaffold(
+                  bottomBar = {
+                      BottomNavBar(
+                          selectedItem = selectedItem,
+                          onItemSelected = { selectedItem = it }
+                      )
+                  }
+              ) { innerPadding ->
+                  when (selectedItem) {
+                      0 -> HomeScreen()
+                      1 -> PlayScreen()
+                      2 -> SettingsScreen()
+                  }
+              }
+          }
+          EOF
+
+      - name: Create ic_minecraft_logo.xml
+        run: |
+          cat > app/src/main/res/drawable/ic_minecraft_logo.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#C0C0C0"
+                  android:pathData="M4,4h16v16H4V4zM6,6v12h12V6H6z"/>
+          </vector>
+          EOF
+      - name: Create strings.xml
+        run: |
+          cat > app/src/main/res/values/strings.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Fear Launcher</string>
+          </resources>
+          EOF
+
+      # --- YE NEW STEP THEME ERROR FIX KAREGA ---
+      - name: Create themes.xml (Fix for Material3 Theme Error)
+        run: |
+          cat > app/src/main/res/values/themes.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.Dark.NoActionBar">
+                  <item name="colorPrimary">@color/silver_primary</item>
+                  <item name="colorPrimaryDark">@color/black_bg</item>
+                  <item name="colorAccent">@color/silver_accent</item>
+                  <item name="android:windowBackground">@color/black_bg</item>
+                  <item name="android:statusBarColor">@color/black_bg</item>
+                  <item name="android:navigationBarColor">@color/black_surface</item>
+              </style>
+          </resources>
+          EOF
+
+      - name: Create colors.xml (Required for themes.xml)
+        run: |
+          cat > app/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="silver_primary">#C0C0C0</color>
+              <color name="silver_dark">#808080</color>
+              <color name="black_bg">#0A0A0A</color>
+              <color name="black_surface">#1C1C1E</color>
+              <color name="silver_accent">#E8E8E8</color>
+              <color name="gradient_start">#2C2C2E</color>
+              <color name="gradient_end">#000000</color>
+          </resources>
+          EOF
+
+      - name: Create AndroidManifest.xml
+        run: |
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <application
+                  android:allowBackup="true"                  android:icon="@drawable/ic_minecraft_logo"
+                  android:label="@string/app_name"
+                  android:roundIcon="@drawable/ic_minecraft_logo"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+
+          </manifest>
+          EOF
+
+      - name: Create build.gradle.kts (Project level)
+        run: |
+          cat > build.gradle.kts << 'EOF'
+          plugins {
+              id("com.android.application") version "8.2.0" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.20" apply false
+          }
+          EOF
+
+      - name: Create app/build.gradle.kts
+        run: |
+          cat > app/build.gradle.kts << 'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.fearlauncher"
+              compileSdk = 34
+
+              defaultConfig {
+                  applicationId = "com.fearlauncher"
+                  minSdk = 24
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0"
+
+                  testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                  vectorDrawables {
+                      useSupportLibrary = true                  }
+              }
+
+              buildTypes {
+                  release {
+                      isMinifyEnabled = false
+                      proguardFiles(
+                          getDefaultProguardFile("proguard-android-optimize.txt"),
+                          "proguard-rules.pro"
+                      )
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_1_8
+                  targetCompatibility = JavaVersion.VERSION_1_8
+              }
+              kotlinOptions {
+                  jvmTarget = "1.8"
+              }
+              buildFeatures {
+                  compose = true
+              }
+              composeOptions {
+                  kotlinCompilerExtensionVersion = "1.5.5"
+              }
+              packaging {
+                  resources {
+                      excludes += "/META-INF/{AL2.0,LGPL2.1}"
+                  }
+              }
+          }
+
+          dependencies {
+              implementation("androidx.core:core-ktx:1.12.0")
+              implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+              implementation("androidx.activity:activity-compose:1.8.1")
+              implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+              implementation("androidx.compose.ui:ui")
+              implementation("androidx.compose.ui:ui-graphics")
+              implementation("androidx.compose.ui:ui-tooling-preview")
+              implementation("androidx.compose.material3:material3")
+              implementation("androidx.compose.material:material-icons-extended")
+              // Material Components for Android (Required for themes.xml)
+              implementation("com.google.android.material:material:1.11.0")
+              testImplementation("junit:junit:4.13.2")
+              androidTestImplementation("androidx.test.ext:junit:1.1.5")
+              androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+              androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
+              androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+              debugImplementation("androidx.compose.ui:ui-tooling")              debugImplementation("androidx.compose.ui:ui-test-manifest")
+          }
+          EOF
+
+      - name: Create settings.gradle.kts
+        run: |
+          cat > settings.gradle.kts << 'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "FearLauncher"
+          include(":app")
+          EOF
+
+      - name: Create gradle.properties
+        run: |
+          cat > gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          EOF
+
+      - name: Create Gradle Wrapper Files
+        run: |
+          curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew -o gradlew
+          chmod +x gradlew
+          curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew.bat -o gradlew.bat
+          mkdir -p gradle/wrapper
+          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" >> gradle/wrapper/gradle-wrapper.properties
+          echo "networkTimeout=10000" >> gradle/wrapper/gradle-wrapper.properties
+          echo "validateDistributionUrl=true" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+      - name: Commit and push generated files
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          commit_message: "Auto-generate Fear Launcher project structure with theme fix"
+          branch: main
+          file_pattern: "app/** .github/** *.gradle.kts *.properties gradle/**"
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
-
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Fear-Launcher-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7
-
-      - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Fear Launcher Build ${{ github.run_number }}
-          files: app/build/outputs/apk/debug/app-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Success Message
+        run: |
+          echo "Fear Launcher project files generated successfully!"
+          echo "Package: com.fearlauncher"
+          echo "Theme: Silver & Black Gradient"
+          echo "Theme Error: FIXED with themes.xml and colors.xml"
