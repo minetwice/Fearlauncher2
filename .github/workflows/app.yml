@@ -1,118 +1,75 @@
-name: Build and Release APK
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+name: Fix Gradle File
+on: workflow_dispatch
 
 jobs:
-  build:
+  fix:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Fix gradle.properties
+      - uses: actions/checkout@v4
+      
+      - name: Write correct build.gradle.kts
         run: |
-          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' > gradle.properties
-          echo 'android.useAndroidX=true' >> gradle.properties
-          echo 'kotlin.code.style=official' >> gradle.properties
-          echo 'android.nonTransitiveRClass=true' >> gradle.properties
+          cat > app/build.gradle.kts << 'EOF'
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
 
-      - name: Fix app/build.gradle.kts
-        run: |
-          echo 'plugins {' > app/build.gradle.kts
-          echo '    id("com.android.application")' >> app/build.gradle.kts
-          echo '    id("org.jetbrains.kotlin.android")' >> app/build.gradle.kts
-          echo '}' >> app/build.gradle.kts
-          echo 'android {' >> app/build.gradle.kts
-          echo '    namespace = "com.fearlauncher"' >> app/build.gradle.kts
-          echo '    compileSdk = 34' >> app/build.gradle.kts
-          echo '    defaultConfig {' >> app/build.gradle.kts
-          echo '        applicationId = "com.fearlauncher"' >> app/build.gradle.kts
-          echo '        minSdk = 24' >> app/build.gradle.kts
-          echo '        targetSdk = 34' >> app/build.gradle.kts
-          echo '        versionCode = 1' >> app/build.gradle.kts
-          echo '        versionName = "1.0"' >> app/build.gradle.kts
-          echo '    }' >> app/build.gradle.kts
-          echo '    buildTypes {' >> app/build.gradle.kts
-          echo '        release {' >> app/build.gradle.kts
-          echo '            isMinifyEnabled = false' >> app/build.gradle.kts          echo '            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")' >> app/build.gradle.kts
-          echo '        }' >> app/build.gradle.kts
-          echo '    }' >> app/build.gradle.kts
-          echo '    compileOptions {' >> app/build.gradle.kts
-          echo '        sourceCompatibility = JavaVersion.VERSION_1_8' >> app/build.gradle.kts
-          echo '        targetCompatibility = JavaVersion.VERSION_1_8' >> app/build.gradle.kts
-          echo '    }' >> app/build.gradle.kts
-          echo '    kotlinOptions { jvmTarget = "1.8" }' >> app/build.gradle.kts
-          echo '    buildFeatures { compose = true }' >> app/build.gradle.kts
-          echo '    composeOptions { kotlinCompilerExtensionVersion = "1.5.5" }' >> app/build.gradle.kts
-          echo '    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }' >> app/build.gradle.kts
-          echo '}' >> app/build.gradle.kts
-          echo 'dependencies {' >> app/build.gradle.kts
-          echo '    implementation("androidx.core:core-ktx:1.12.0")' >> app/build.gradle.kts
-          echo '    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")' >> app/build.gradle.kts
-          echo '    implementation("androidx.activity:activity-compose:1.8.1")' >> app/build.gradle.kts
-          echo '    implementation(platform("androidx.compose:compose-bom:2023.10.01"))' >> app/build.gradle.kts
-          echo '    implementation("androidx.compose.ui:ui")' >> app/build.gradle.kts
-          echo '    implementation("androidx.compose.ui:ui-graphics")' >> app/build.gradle.kts
-          echo '    implementation("androidx.compose.ui:ui-tooling-preview")' >> app/build.gradle.kts
-          echo '    implementation("androidx.compose.material3:material3")' >> app/build.gradle.kts
-          echo '    implementation("androidx.compose.material:material-icons-extended")' >> app/build.gradle.kts
-          echo '    implementation("com.google.android.material:material:1.11.0")' >> app/build.gradle.kts
-          echo '    testImplementation("junit:junit:4.13.2")' >> app/build.gradle.kts
-          echo '    androidTestImplementation("androidx.test.ext:junit:1.1.5")' >> app/build.gradle.kts
-          echo '    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")' >> app/build.gradle.kts
-          echo '    androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))' >> app/build.gradle.kts
-          echo '    androidTestImplementation("androidx.compose.ui:ui-test-junit4")' >> app/build.gradle.kts
-          echo '    debugImplementation("androidx.compose.ui:ui-tooling")' >> app/build.gradle.kts
-          echo '    debugImplementation("androidx.compose.ui:ui-test-manifest")' >> app/build.gradle.kts
-          echo '}' >> app/build.gradle.kts
+android {
+    namespace = "com.fearlauncher"
+    compileSdk = 34
 
-      - name: Fix Gradle Wrapper
-        run: |
-          if [ ! -f "./gradlew" ]; then
-            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew -o gradlew
-            chmod +x gradlew
-            mkdir -p gradle/wrapper
-            echo 'distributionBase=GRADLE_USER_HOME' > gradle/wrapper/gradle-wrapper.properties
-            echo 'distributionPath=wrapper/dists' >> gradle/wrapper/gradle-wrapper.properties
-            echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip' >> gradle/wrapper/gradle-wrapper.properties
-            echo 'networkTimeout=10000' >> gradle/wrapper/gradle-wrapper.properties
-            echo 'validateDistributionUrl=true' >> gradle/wrapper/gradle-wrapper.properties
-            echo 'zipStoreBase=GRADLE_USER_HOME' >> gradle/wrapper/gradle-wrapper.properties
-            echo 'zipStorePath=wrapper/dists' >> gradle/wrapper/gradle-wrapper.properties
-            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          fi
+    defaultConfig {
+        applicationId = "com.fearlauncher"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables { useSupportLibrary = true }
+    }
 
-      - name: Grant execute permission
-        run: chmod +x gradlew
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = "1.8" }
+    buildFeatures { compose = true }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.5" }
+    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+}
 
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
+dependencies {
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.activity:activity-compose:1.8.1")
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.android.material:material:1.10.0")
+    
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+EOF
+          
+      - name: Commit fix
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: FearLauncher-Debug
-          path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Fear Launcher Build ${{ github.run_number }}
-          body: "New build of Fear Launcher. Download the APK below."
-          files: app/build/outputs/apk/debug/app-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "Fix echo error in build.gradle.kts"
