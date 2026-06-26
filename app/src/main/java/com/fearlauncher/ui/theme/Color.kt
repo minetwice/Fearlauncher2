@@ -1,8 +1,5 @@
 package com.fearlauncher.ui.theme
-
 import androidx.compose.ui.graphics.Color
-
-// Silver & Black Palette for Fear Launcher
 val SilverPrimary = Color(0xFFC0C0C0)
 val SilverDark = Color(0xFF808080)
 val BlackBg = Color(0xFF0A0A0A)
