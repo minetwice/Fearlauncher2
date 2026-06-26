@@ -1,7 +1,7 @@
 name: Build Fear Launcher APK
 
 on:
-  workflow_dispatch: # Manual run ke liye
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -20,27 +20,25 @@ jobs:
       - name: Fix Missing Gradle Wrapper (Auto Download)
         run: |
           if [ ! -f "./gradlew" ]; then
-            echo "️ gradlew file missing hai! Downloading..."
-            # Download gradlew script
+            echo "gradlew file missing hai! Downloading..."
             curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew -o gradlew
             chmod +x gradlew
             
-            # Download wrapper jar aur properties
             mkdir -p gradle/wrapper
             curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
             
-            cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-            distributionBase=GRADLE_USER_HOME
-            distributionPath=wrapper/dists
-            distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
-            networkTimeout=10000
-            validateDistributionUrl=true
-            zipStoreBase=GRADLE_USER_HOME
-            zipStorePath=wrapper/dists
-            EOF
-            echo "✅ Gradle wrapper successfully downloaded!"
+            # Safe way to write properties file without EOF indentation issues
+            echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+            echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+            echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" >> gradle/wrapper/gradle-wrapper.properties
+            echo "networkTimeout=10000" >> gradle/wrapper/gradle-wrapper.properties
+            echo "validateDistributionUrl=true" >> gradle/wrapper/gradle-wrapper.properties
+            echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+            echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+            
+            echo "Gradle wrapper successfully downloaded!"
           else
-            echo "✅ gradlew already exists."
+            echo "gradlew already exists."
           fi
 
       - name: Set up JDK 17
@@ -65,7 +63,7 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
-      - name: Create GitHub Release (Optional)
+      - name: Create GitHub Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
