@@ -75,27 +75,70 @@ fun HomeScreen(username: String) {
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
+                // Detailed Skin Preview (Front/Back)
+                Row(
                     modifier = Modifier
-                        .size(80.dp)
-                        .background(DeepBlack, RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
+                        .width(120.dp)
+                        .height(160.dp)
+                        .background(DeepBlack, RoundedCornerShape(12.dp))
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Person, "Skin", tint = SilverDark, modifier = Modifier.size(48.dp))
+                    // Front Preview
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(SilverDark.copy(alpha = 0.1f), RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Person, "Skin Front", tint = SilverPrimary, modifier = Modifier.size(40.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // Back Preview
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(SilverDark.copy(alpha = 0.1f), RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Person, "Skin Back", tint = SilverDark, modifier = Modifier.size(40.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+
+                Spacer(modifier = Modifier.width(24.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Current Skin", color = SilverPrimary, fontWeight = FontWeight.Bold)
+                    Text("Current Skin", color = SilverPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                     Text("Default Alex", color = SilverDark, fontSize = 12.sp)
-                }
-                Button(
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.FileUpload, "Upload", tint = SilverPrimary, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Change", color = SilverPrimary, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { },
+                            colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Icon(Icons.Default.FileUpload, "Upload", tint = BlackBg, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Upload", color = BlackBg, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        OutlinedButton(
+                            onClick = { },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = SilverPrimary),
+                            shape = RoundedCornerShape(8.dp),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.linearGradient(listOf(SilverDark, SilverPrimary))),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Text("Reset", fontSize = 11.sp)
+                        }
+                    }
                 }
             }
         }

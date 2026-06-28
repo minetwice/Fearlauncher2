@@ -1,6 +1,7 @@
 package com.fearlauncher
 
 import androidx.compose.animation.core.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,9 +28,9 @@ fun FearLauncherApp() {
     val infiniteTransition = rememberInfiniteTransition(label = "background")
     val targetOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1000f,
+        targetValue = 2000f,
         animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
+            animation = tween(30000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "offset"
@@ -40,12 +41,25 @@ fun FearLauncherApp() {
             .fillMaxSize()
             .background(
                 Brush.linearGradient(
-                    colors = listOf(DeepBlack, GradientGrey, DeepBlack),
-                    start = androidx.compose.ui.geometry.Offset(targetOffset, targetOffset),
-                    end = androidx.compose.ui.geometry.Offset(targetOffset + 500f, targetOffset + 500f)
+                    colors = listOf(DeepBlack, Color(0xFF1A1A1A), DeepBlack),
+                    start = androidx.compose.ui.geometry.Offset(targetOffset / 2, targetOffset / 2),
+                    end = androidx.compose.ui.geometry.Offset(targetOffset, targetOffset)
                 )
             )
     ) {
+        // Glossy Shine Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(SilverGloss.copy(alpha = 0.05f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(targetOffset % 1000f, targetOffset % 1000f),
+                        radius = 800f
+                    )
+                )
+        )
+
         if (!isLoggedIn) {
             LoginScreen(
                 onMicrosoftLogin = {

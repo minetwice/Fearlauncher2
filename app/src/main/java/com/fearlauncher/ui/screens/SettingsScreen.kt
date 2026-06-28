@@ -52,6 +52,14 @@ fun SettingsScreen() {
         SettingsSection(title = "Game Settings") {
             SettingsSlider(label = "Global Memory Allocation", value = 4f, range = 2f..16f)
             SettingsTextField(label = "Resolution", value = "1920x1080")
+            SettingsTextField(label = "Game Directory", value = "/sdcard/FearLauncher/.minecraft")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SettingsSection(title = "Video Settings") {
+            SettingsDropdown(label = "Renderer", options = listOf("Holy Renderer", "GL4ES 1.1.4", "Angle (Experimental)"), selected = "Holy Renderer")
+            SettingsSlider(label = "GUI Scale", value = 1f, range = 0.5f..2f)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -121,6 +129,40 @@ fun SettingsSlider(label: String, value: Float, range: ClosedFloatingPointRange<
                 activeTrackColor = SilverPrimary
             )
         )
+    }
+}
+
+@Composable
+fun SettingsDropdown(label: String, options: List<String>, selected: String) {
+    var expanded by remember { mutableStateOf(false) }
+    Column {
+        Text(label, color = SilverDark, fontSize = 12.sp)
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.linearGradient(listOf(SilverDark, SilverPrimary)))
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(selected)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(BlackSurface)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option, color = SilverPrimary) },
+                        onClick = { expanded = false }
+                    )
+                }
+            }
+        }
     }
 }
 
