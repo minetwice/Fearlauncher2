@@ -32,7 +32,7 @@ object VersionManager {
     suspend fun downloadVersion(
         context: Context,
         versionId: String,
-        url: String,
+        clientJarUrl: String,
         onProgress: (Float) -> Unit
     ) = withContext(Dispatchers.IO) {
         val versionDir = File(getVersionsDirectory(context), versionId)
@@ -41,7 +41,7 @@ object VersionManager {
         val destination = File(versionDir, "$versionId.jar")
 
         val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
+        val request = Request.Builder().url(clientJarUrl).build()
 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return@withContext

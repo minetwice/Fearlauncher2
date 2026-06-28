@@ -24,3 +24,17 @@ data class FabricVersion(
     @SerializedName("version") val version: String,
     @SerializedName("stable") val stable: Boolean
 )
+
+data class VersionDetail(
+    @SerializedName("downloads") val downloads: Downloads
+)
+
+data class Downloads(
+    @SerializedName("client") val client: DownloadInfo
+)
+
+data class DownloadInfo(
+    @SerializedName("url") val url: String,
+    @SerializedName("size") val size: Long,
+    @SerializedName("sha1") val sha1: String
+)

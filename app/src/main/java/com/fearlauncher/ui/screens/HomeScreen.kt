@@ -2,9 +2,9 @@ package com.fearlauncher.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Person
@@ -23,9 +23,12 @@ import com.fearlauncher.ui.theme.*
 
 @Composable
 fun HomeScreen(username: String) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(24.dp)
     ) {
         Text(
@@ -146,10 +149,13 @@ fun HomeScreen(username: String) {
         Spacer(modifier = Modifier.height(24.dp))
         Text("Recent Installations", color = SilverAccent, style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(12.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(listOf("1.20.4 Vanilla", "1.19.2 Modded", "1.20.1 SMP")) { version ->
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            listOf("1.20.4 Vanilla", "1.19.2 Modded", "1.20.1 SMP").forEach { version ->
                 VersionCard(versionName = version)
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }

@@ -36,6 +36,7 @@ fun PlayScreen(
     onLaunchGame: (String) -> Unit
 ) {
     var selectedVersion by remember { mutableStateOf<MinecraftVersion?>(null) }
+    var expandedDropdown by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
@@ -89,13 +90,10 @@ fun PlayScreen(
             }
             
             // Version Selector Dropdown
-            ExposedDropdownMenuBox(
-                expanded = false,
-                onExpandedChange = {}
-            ) {
+            Box {
                 OutlinedButton(
-                    onClick = { },
-                    modifier = Modifier.width(200.dp),
+                    onClick = { expandedDropdown = true },
+                    modifier = Modifier.width(220.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = SilverPrimary
@@ -104,10 +102,29 @@ fun PlayScreen(
                     Icon(Icons.Default.List, "Versions", tint = SilverPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        selectedVersion?.name ?: "Select Version",
+                        selectedVersion?.id ?: "Select Version",
                         color = SilverPrimary,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
                     )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(Icons.Default.ArrowDropDown, null, tint = SilverPrimary)
+                }
+
+                DropdownMenu(
+                    expanded = expandedDropdown,
+                    onDismissRequest = { expandedDropdown = false },
+                    modifier = Modifier.background(BlackSurface).width(220.dp)
+                ) {
+                    availableVersions.take(10).forEach { version ->
+                        DropdownMenuItem(
+                            text = { Text(version.id, color = SilverPrimary) },
+                            onClick = {
+                                selectedVersion = version
+                                expandedDropdown = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -257,10 +274,12 @@ fun PlayScreen(
                                                 val manifest = NetworkModule.minecraftApi.getVersionManifest()
                                                 val versionInfo = manifest.versions.find { it.id == selectedVersion!!.id }
 
+                                                val detail = NetworkModule.minecraftApi.getVersionDetail(versionInfo?.url ?: "")
+
                                                 VersionManager.downloadVersion(
                                                     context = context,
                                                     versionId = selectedVersion!!.id,
-                                                    url = versionInfo?.url ?: "",
+                                                    clientJarUrl = detail.downloads.client.url,
                                                     onProgress = { progress ->
                                                         downloadProgress = progress
                                                     }

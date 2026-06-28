@@ -22,6 +22,17 @@ import com.fearlauncher.ui.theme.*
 fun SettingsScreen() {
     val scrollState = rememberScrollState()
 
+    // Settings State
+    var javaPath by remember { mutableStateOf("Internal (JRE 21)") }
+    var jvmArgs by remember { mutableStateOf("-Xmx4G -XX:+UseG1GC") }
+    var memoryAlloc by remember { mutableFloatStateOf(4f) }
+    var resolution by remember { mutableStateOf("1920x1080") }
+    var gameDir by remember { mutableStateOf("/sdcard/FearLauncher/.minecraft") }
+    var renderer by remember { mutableStateOf("Holy Renderer") }
+    var guiScale by remember { mutableFloatStateOf(1f) }
+    var keepOpen by remember { mutableStateOf(true) }
+    var enableGloss by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,30 +54,35 @@ fun SettingsScreen() {
         Spacer(modifier = Modifier.height(32.dp))
 
         SettingsSection(title = "Java Runtime") {
-            SettingsTextField(label = "Java Path", value = "Internal (JRE 21)")
-            SettingsTextField(label = "JVM Arguments", value = "-Xmx4G -XX:+UseG1GC")
+            SettingsTextField(label = "Java Path", value = javaPath, onValueChange = { javaPath = it })
+            SettingsTextField(label = "JVM Arguments", value = jvmArgs, onValueChange = { jvmArgs = it })
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         SettingsSection(title = "Game Settings") {
-            SettingsSlider(label = "Global Memory Allocation", value = 4f, range = 2f..16f)
-            SettingsTextField(label = "Resolution", value = "1920x1080")
-            SettingsTextField(label = "Game Directory", value = "/sdcard/FearLauncher/.minecraft")
+            SettingsSlider(label = "Global Memory Allocation", value = memoryAlloc, range = 2f..16f, onValueChange = { memoryAlloc = it })
+            SettingsTextField(label = "Resolution", value = resolution, onValueChange = { resolution = it })
+            SettingsTextField(label = "Game Directory", value = gameDir, onValueChange = { gameDir = it })
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         SettingsSection(title = "Video Settings") {
-            SettingsDropdown(label = "Renderer", options = listOf("Holy Renderer", "GL4ES 1.1.4", "Angle (Experimental)"), selected = "Holy Renderer")
-            SettingsSlider(label = "GUI Scale", value = 1f, range = 0.5f..2f)
+            SettingsDropdown(
+                label = "Renderer",
+                options = listOf("Holy Renderer", "GL4ES 1.1.4", "Angle (Experimental)"),
+                selected = renderer,
+                onSelect = { renderer = it }
+            )
+            SettingsSlider(label = "GUI Scale", value = guiScale, range = 0.5f..2f, onValueChange = { guiScale = it }, isInteger = false)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         SettingsSection(title = "Launcher") {
-            SettingsToggle(label = "Keep launcher open", enabled = true)
-            SettingsToggle(label = "Enable dark mode gloss", enabled = true)
+            SettingsToggle(label = "Keep launcher open", enabled = keepOpen, onToggle = { keepOpen = it })
+            SettingsToggle(label = "Enable dark mode gloss", enabled = enableGloss, onToggle = { enableGloss = it })
         }
     }
 }
@@ -97,12 +113,12 @@ fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) 
 }
 
 @Composable
-fun SettingsTextField(label: String, value: String) {
+fun SettingsTextField(label: String, value: String, onValueChange: (String) -> Unit) {
     Column {
         Text(label, color = SilverDark, fontSize = 12.sp)
         OutlinedTextField(
             value = value,
-            onValueChange = {},
+            onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
             colors = OutlinedTextFieldDefaults.colors(
@@ -114,15 +130,25 @@ fun SettingsTextField(label: String, value: String) {
 }
 
 @Composable
-fun SettingsSlider(label: String, value: Float, range: ClosedFloatingPointRange<Float>) {
+fun SettingsSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    onValueChange: (Float) -> Unit,
+    isInteger: Boolean = true
+) {
     Column {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(label, color = SilverDark, fontSize = 12.sp)
-            Text("${value.toInt()} GB", color = SilverPrimary, fontWeight = FontWeight.Bold)
+            Text(
+                if (isInteger) "${value.toInt()} GB" else String.format("%.1f", value),
+                color = SilverPrimary,
+                fontWeight = FontWeight.Bold
+            )
         }
         Slider(
             value = value,
-            onValueChange = {},
+            onValueChange = onValueChange,
             valueRange = range,
             colors = SliderDefaults.colors(
                 thumbColor = SilverPrimary,
@@ -133,7 +159,7 @@ fun SettingsSlider(label: String, value: Float, range: ClosedFloatingPointRange<
 }
 
 @Composable
-fun SettingsDropdown(label: String, options: List<String>, selected: String) {
+fun SettingsDropdown(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Column {
         Text(label, color = SilverDark, fontSize = 12.sp)
@@ -158,7 +184,10 @@ fun SettingsDropdown(label: String, options: List<String>, selected: String) {
                 options.forEach { option ->
                     DropdownMenuItem(
                         text = { Text(option, color = SilverPrimary) },
-                        onClick = { expanded = false }
+                        onClick = {
+                            onSelect(option)
+                            expanded = false
+                        }
                     )
                 }
             }
@@ -167,7 +196,7 @@ fun SettingsDropdown(label: String, options: List<String>, selected: String) {
 }
 
 @Composable
-fun SettingsToggle(label: String, enabled: Boolean) {
+fun SettingsToggle(label: String, enabled: Boolean, onToggle: (Boolean) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,7 +205,7 @@ fun SettingsToggle(label: String, enabled: Boolean) {
         Text(label, color = SilverDark, fontSize = 14.sp)
         Switch(
             checked = enabled,
-            onCheckedChange = {},
+            onCheckedChange = onToggle,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = SilverPrimary,
                 checkedTrackColor = SilverPrimary.copy(alpha = 0.5f)
