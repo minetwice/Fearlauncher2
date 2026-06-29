@@ -13,6 +13,7 @@ object LauncherManager {
         username: String,
         maxMemory: Int,
         renderer: String,
+        javaPath: String,
         jvmArgs: String
     ): Process? {
         val gameDir = VersionManager.getGameDirectory(context)
@@ -22,8 +23,8 @@ object LauncherManager {
         if (!jarFile.exists()) return null
 
         val jreId = when {
-            jvmArgs.contains("JRE 18") -> "18"
-            jvmArgs.contains("JRE 25") -> "25"
+            javaPath.contains("18") -> "18"
+            javaPath.contains("25") -> "25"
             else -> "21"
         }
         val jrePath = File(context.filesDir, "jre/$jreId/bin/java")

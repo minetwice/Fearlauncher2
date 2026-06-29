@@ -144,6 +144,7 @@ fun FearLauncherApp() {
                                         username = username,
                                         maxMemory = config.maxMemory,
                                         renderer = config.renderer,
+                                        javaPath = config.javaPath,
                                         jvmArgs = config.jvmArgs
                                     )
                                     if (process != null) {

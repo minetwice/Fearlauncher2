@@ -1,26 +1,39 @@
-```
 # Compiled and build artifacts
 *.class
 *.o
 *.obj
 *.out
 build/
-# Dependencies
 .gradle/
+.cxx/
+
 # Logs and temp files
 *.log
 *.tmp
 *.swp
+
 # Environment
 .env
 .env.local
 *.env.*
+
 # Editors
 .vscode/
 .idea/
-```/app/.cxx/
+
+# Android artifacts
+/app/.cxx/
 /app/build/
-.gradle/
-app/.cxx/
-app/build/
-.gradle/
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/codeStyles
+/.idea/renderers.xml
+.DS_Store
+/captures
+.externalNativeBuild
+.cxx
