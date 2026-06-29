@@ -268,10 +268,8 @@ fun PlayScreen(
                             // Launch Button
                             Button(
                                 onClick = {
-                                    if (selectedVersion!!.isInstalled) {
-                                        isLoading = true
+                                    if (VersionManager.isVersionInstalled(context, selectedVersion!!.id)) {
                                         onLaunchGame(selectedVersion!!.id)
-                                        isLoading = false
                                     } else {
                                         isDownloading = true
                                         scope.launch {
@@ -320,16 +318,17 @@ fun PlayScreen(
                                         strokeWidth = 2.dp
                                     )
                                 } else {
+                                    val isInstalled = VersionManager.isVersionInstalled(context, selectedVersion!!.id)
                                     Icon(
-                                        if (selectedVersion!!.isInstalled) Icons.Default.PlayArrow else Icons.Default.Download,
+                                        if (isInstalled) Icons.Default.PlayArrow else Icons.Default.Download,
                                         "Action",
-                                        tint = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
+                                        tint = if (isInstalled) BlackBg else SilverDark,
                                         modifier = Modifier.size(24.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        if (selectedVersion!!.isInstalled) "LAUNCH GAME" else "INSTALL VERSION",
-                                        color = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
+                                        if (isInstalled) "LAUNCH GAME" else "INSTALL VERSION",
+                                        color = if (isInstalled) BlackBg else SilverDark,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
@@ -400,6 +399,7 @@ fun VersionListItem(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -432,7 +432,7 @@ fun VersionListItem(
                 )
             }
             
-            if (version.isInstalled) {
+            if (VersionManager.isVersionInstalled(context, version.id)) {
                 Icon(
                     Icons.Default.CheckCircle,
                     "Installed",

@@ -24,6 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.fearlauncher.logic.skins.Skin
 import com.fearlauncher.logic.skins.SkinManager
 import com.fearlauncher.ui.theme.*
@@ -94,24 +96,32 @@ fun SkinScreen() {
                             // Head
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
-                                    .background(SilverPrimary.copy(alpha = 0.2f), RoundedCornerShape(4.dp)),
+                                    .size(width = 56.dp, height = 56.dp)
+                                    .background(if (selectedSkin?.name == "Alex") Color(0xFFFFD1AA) else Color(0xFFC09060), RoundedCornerShape(2.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Person, null, tint = SilverPrimary, modifier = Modifier.size(40.dp))
+                                // Face Details (Mouth/Eyes)
+                                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 16.dp)) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Box(modifier = Modifier.size(8.dp).background(Color.White))
+                                        Box(modifier = Modifier.size(8.dp).background(Color.White))
+                                    }
+                                    Box(modifier = Modifier.size(width = 16.dp, height = 4.dp).background(Color.Red.copy(alpha = 0.5f)).align(Alignment.BottomCenter))
+                                }
                             }
                             // Body
+                            val bodyWidth = if (selectedSkin?.name == "Alex") 72.dp else 80.dp
                             Box(
                                 modifier = Modifier
-                                    .size(width = 80.dp, height = 120.dp)
-                                    .padding(top = 4.dp)
-                                    .background(SilverPrimary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                    .size(width = bodyWidth, height = 96.dp)
+                                    .padding(top = 2.dp)
+                                    .background(SilverPrimary.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
                             )
-                            // Legs
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                Box(modifier = Modifier.size(width = 38.dp, height = 100.dp).background(SilverPrimary.copy(alpha = 0.1f), RoundedCornerShape(4.dp)))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Box(modifier = Modifier.size(width = 38.dp, height = 100.dp).background(SilverPrimary.copy(alpha = 0.1f), RoundedCornerShape(4.dp)))
+                            // Legs & Arms
+                            Row(modifier = Modifier.padding(top = 2.dp)) {
+                                Box(modifier = Modifier.size(width = 36.dp, height = 96.dp).background(SilverPrimary.copy(alpha = 0.15f), RoundedCornerShape(2.dp)))
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Box(modifier = Modifier.size(width = 36.dp, height = 96.dp).background(SilverPrimary.copy(alpha = 0.15f), RoundedCornerShape(2.dp)))
                             }
                         }
 
@@ -140,6 +150,15 @@ fun SkinScreen() {
             Spacer(modifier = Modifier.width(24.dp))
 
             // Right Side - Skin List
+            val skinPickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri ->
+                uri?.let {
+                    SkinManager.importSkin(context, it, "Skin_${System.currentTimeMillis()}")
+                    skins = SkinManager.getSkins(context)
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .width(350.dp)
@@ -151,7 +170,7 @@ fun SkinScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Collection", color = SilverAccent, fontWeight = FontWeight.SemiBold)
-                    IconButton(onClick = { /* Pick File */ }) {
+                    IconButton(onClick = { skinPickerLauncher.launch("image/png") }) {
                         Icon(Icons.Default.Add, null, tint = SilverPrimary)
                     }
                 }

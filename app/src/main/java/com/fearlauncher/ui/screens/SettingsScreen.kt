@@ -47,6 +47,8 @@ fun SettingsScreen() {
         )}
     }
 
+    val (toastVisible, setToastVisible) = remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

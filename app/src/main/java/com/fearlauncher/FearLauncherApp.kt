@@ -27,6 +27,7 @@ fun FearLauncherApp() {
     val config = remember { com.fearlauncher.logic.ConfigManager.getConfig(context) }
     var isLoggedIn by remember { mutableStateOf(config.selectedUsername.isNotBlank()) }
     var username by remember { mutableStateOf(config.selectedUsername) }
+    var isSetupComplete by remember { mutableStateOf(false) } // Should be persisted in real app
 
     // Toast state
     var toastVisible by remember { mutableStateOf(false) }
@@ -75,6 +76,8 @@ fun FearLauncherApp() {
                     isLoggedIn = true
                 }
             )
+        } else if (!isSetupComplete) {
+            SetupScreen(onComplete = { isSetupComplete = true })
         } else {
             Scaffold(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
@@ -127,7 +130,7 @@ fun FearLauncherApp() {
                             PlayScreen(
                                 onLaunchGame = { version ->
                                     val config = com.fearlauncher.logic.ConfigManager.getConfig(context)
-                                    val process = com.fearlauncher.logic.LauncherManager.launchGame(
+                                    val process = com.fearlauncher.core.LauncherManager.launchGame(
                                         context = context,
                                         versionId = version,
                                         username = username,

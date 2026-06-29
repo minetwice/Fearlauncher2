@@ -1,4 +1,6 @@
-package com.fearlauncher.logic
+package com.fearlauncher.core
+
+import com.fearlauncher.logic.VersionManager
 
 import android.content.Context
 import java.io.File

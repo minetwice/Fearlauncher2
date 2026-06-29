@@ -1,4 +1,4 @@
-package com.fearlauncher.logic
+package com.fearlauncher.core
 
 import android.content.Context
 import com.fearlauncher.utils.SystemUtils
