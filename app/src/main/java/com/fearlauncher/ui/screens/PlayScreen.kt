@@ -178,7 +178,8 @@ fun PlayScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(availableVersions.filter {
-                            it.id.contains(searchQuery, ignoreCase = true)
+                            it.id.contains(searchQuery, ignoreCase = true) &&
+                            VersionManager.isVersionInstalled(context, it.id)
                         }) { version ->
                             VersionListItem(
                                 version = version,

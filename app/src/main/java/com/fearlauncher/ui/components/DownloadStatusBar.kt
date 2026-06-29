@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fearlauncher.logic.VersionManager
 import com.fearlauncher.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun DownloadStatusBar(status: VersionManager.DownloadStatus) {
@@ -29,10 +30,11 @@ fun DownloadStatusBar(status: VersionManager.DownloadStatus) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Downloading Version...",
+                status.fileName,
                 color = SilverPrimary,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
             )
             Text(
                 "${(status.progress * 100).toInt()}%",
@@ -61,12 +63,12 @@ fun DownloadStatusBar(status: VersionManager.DownloadStatus) {
         ) {
             Column {
                 Text(
-                    "Speed: ${formatSpeed(status.speed)}",
+                    String.format(Locale.US, "Speed: %.2f MB/s", status.speedMBs),
                     color = SilverDark,
                     fontSize = 10.sp
                 )
                 Text(
-                    "Size: ${formatSize(status.downloadedSize)} / ${formatSize(status.totalSize)}",
+                    String.format(Locale.US, "Size: %.1f / %.1f MB", status.downloadedMB, status.totalMB),
                     color = SilverDark,
                     fontSize = 10.sp
                 )
@@ -78,22 +80,6 @@ fun DownloadStatusBar(status: VersionManager.DownloadStatus) {
                 fontWeight = FontWeight.Medium
             )
         }
-    }
-}
-
-private fun formatSpeed(bytesPerSecond: Double): String {
-    return when {
-        bytesPerSecond >= 1024 * 1024 -> String.format("%.2f MB/s", bytesPerSecond / (1024 * 1024))
-        bytesPerSecond >= 1024 -> String.format("%.2f KB/s", bytesPerSecond / 1024)
-        else -> String.format("%.2f B/s", bytesPerSecond)
-    }
-}
-
-private fun formatSize(bytes: Long): String {
-    return when {
-        bytes >= 1024 * 1024 -> String.format("%.2f MB", bytes.toFloat() / (1024 * 1024))
-        bytes >= 1024 -> String.format("%.2f KB", bytes.toFloat() / 1024)
-        else -> "$bytes B"
     }
 }
 

@@ -4,10 +4,13 @@ import androidx.compose.animation.core.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +32,28 @@ fun FearLauncherApp() {
     var isLoggedIn by remember { mutableStateOf(config.selectedUsername.isNotBlank()) }
     var username by remember { mutableStateOf(config.selectedUsername) }
     var isSetupComplete by remember { mutableStateOf(false) } // Should be persisted in real app
+
+    // JRE initialization state
+    var jreDownloadMessage by remember { mutableStateOf("") }
+    var jreDownloadProgress by remember { mutableStateOf(0f) }
+    var isJreInitializing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val jreManager = com.fearlauncher.core.JREManager(context)
+        val versions = com.fearlauncher.core.JREManager.JREVersion.entries
+
+        val missingVersions = versions.filter { !jreManager.isJREInstalled(it) }
+        if (missingVersions.isNotEmpty()) {
+            isJreInitializing = true
+            for (version in missingVersions) {
+                jreManager.downloadAndExtractJRE(version) { msg, progress ->
+                    jreDownloadMessage = msg
+                    jreDownloadProgress = progress
+                }
+            }
+            isJreInitializing = false
+        }
+    }
 
     // Toast state
     var toastVisible by remember { mutableStateOf(false) }
@@ -137,15 +162,15 @@ fun FearLauncherApp() {
                         composable("play") {
                             PlayScreen(
                                 onLaunchGame = { version ->
-                                    val config = com.fearlauncher.logic.ConfigManager.getConfig(context)
+                                    val currentConfig = com.fearlauncher.logic.ConfigManager.getConfig(context)
                                     val process = com.fearlauncher.core.LauncherManager.launchGame(
                                         context = context,
                                         versionId = version,
                                         username = username,
-                                        maxMemory = config.maxMemory,
-                                        renderer = config.renderer,
-                                        javaPath = config.javaPath,
-                                        jvmArgs = config.jvmArgs
+                                        maxMemory = currentConfig.maxMemory,
+                                        renderer = currentConfig.renderer,
+                                        javaPath = currentConfig.javaPath,
+                                        jvmArgs = currentConfig.jvmArgs
                                     )
                                     if (process != null) {
                                         toastTitle = "Game Started!"
@@ -173,6 +198,40 @@ fun FearLauncherApp() {
                 isVisible = toastVisible,
                 onDismiss = { toastVisible = false }
             )
+        }
+
+        // JRE Progress Bar at bottom
+        if (isJreInitializing) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 0.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(DeepBlack.copy(alpha = 0.8f))
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        jreDownloadMessage,
+                        color = SilverPrimary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LinearProgressIndicator(
+                        progress = jreDownloadProgress,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(2.dp),
+                        color = SilverPrimary,
+                        trackColor = SilverDark.copy(alpha = 0.3f)
+                    )
+                }
+            }
         }
     }
 }

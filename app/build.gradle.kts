@@ -74,6 +74,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.apache.commons:commons-compress:1.24.0")
 
     // Added for Manifest theme support
     implementation("com.google.android.material:material:1.10.0") 
